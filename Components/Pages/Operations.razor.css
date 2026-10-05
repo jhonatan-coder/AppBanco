@@ -1,0 +1,106 @@
+.form-principal{
+    position: absolute;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;        
+    width: 100%;
+    padding: 20px;
+    box-sizing: border-box;   
+}
+.opcoes{
+    display: flex;
+    flex-direction: column;
+    background-color: #e0f7fa;
+    border: 1px solid #0097a7;
+    border-radius: 12px;
+    padding: 32px 40px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+    text-align: center;
+    max-width: 360px;
+    width: 100%;
+    box-sizing: border-box;
+}
+.opcoes label{
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: #006064;
+    margin-bottom: 8px;
+}
+.opcoes button{
+    padding: 10px 16px;
+    margin: 3px;
+    font-size: 1rem;
+    font-weight: 500;
+    color: white;
+    background-color: #00acc1;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.2s ease, transform 0.1s ease;
+}
+.opcoes button:hover{
+    background-color: #00838f;
+    transform: translateY(-2px);
+}
+.opcoes button:active{
+    transform: translateY(0);
+}
+.sessao-deposito, .sessao-sacar, .sessao-transferir{
+    max-height: 0;
+    opacity: 0;
+    overflow: hidden;
+    transition: all 0.4s ease;
+    margin-top: 0;
+    background-color: rgb(253, 253, 253);
+}
+.sessao-deposito.aberta, .sessao-sacar.aberta, .sessao-transferir.aberta{
+    max-height: 200px;
+    opacity: 1;
+    border-radius: 8px;
+    margin: 10px 0px 0px 10px;
+    margin-bottom: 10px;
+    box-shadow: 4px 4px 4px 4px rgba(0,0,0,0.4);
+}
+
+.inputs-config{
+    margin: 10px;
+    border: 1px solid black;
+    border-radius: 8px;
+}
+.info-saldo{
+    position: relative;
+    display:flex;
+    flex-direction: column;
+    background-color: #e0f7fa;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    padding: 5px;
+}
+.sessao-saldo{    
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    border-radius: 8px;
+    margin: 10px;    
+    width: 250px;
+    background-color: #b0b4b4;    
+}
+.saldo{
+    overflow: hidden;
+    opacity: 0;
+    text-align: center;
+    width: 100%;
+    transition: all 0.3s ease;
+}
+.saldo:hover{
+    opacity: 1;
+}
+.mensagem-erro{
+    color: red;
+}
+.mensagem-sucesso{
+    color: green;
+}

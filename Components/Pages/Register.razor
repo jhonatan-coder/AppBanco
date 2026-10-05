@@ -1,0 +1,99 @@
+@page "/register"
+@rendermode InteractiveServer
+@using AppBanco.Data
+@using Microsoft.AspNetCore.Identity
+@using Microsoft.EntityFrameworkCore
+@inject AppDbContext Db
+
+<PageTitle>Cadastro</PageTitle>
+
+<div class="form-container">
+    <h3 class="form-title">Cadastro do Usuário</h3>
+    <div class="form-register">
+        <EditForm Model="@usuario" OnValidSubmit="@TratarSucesso" autocomplete="off">
+
+            <DataAnnotationsValidator />
+
+            <ValidationSummary />
+
+            <div class="form-group">
+                <label>Nome</label>
+                <InputText class="input-text" @bind-Value="usuario.Nome"/>
+                <ValidationMessage For="@(() => usuario.Nome)" />
+            </div>
+
+            <div class="form-group">
+                <label>E-mail</label>
+                <InputText  class="input-text" @bind-Value="usuario.Email"/>
+                <ValidationMessage For="@(() => usuario.Email)"/>
+            </div>
+
+            <div class="form-group">
+                <label>Senha</label>
+                <InputText type="password" class="input-text" @bind-Value="usuario.Senha"/>                
+                <ValidationMessage For="@(() => usuario.Senha)"/>
+            </div>
+
+            <div class="form-group">
+                <label>CPF</label>
+                <InputText class="input-text" @bind-Value="usuario.CPF"/>
+                <ValidationMessage For="@(() => usuario.CPF)"/>
+            </div>
+
+            <button type="submit">Cadastrar</button>
+            <span>
+                <p>@msg</p>
+            </span>
+        </EditForm>
+        <div>
+            <span>
+                <a href="/">Já possui uma conta? Faça login</a>
+            </span>
+
+        </div>
+    </div>
+</div>
+
+@code{
+    string msg = string.Empty;
+    private Usuario usuario = new();
+    private async Task TratarSucesso()
+    {   
+        // Verificar se o e-mail já está em uso
+        var existe = await Db.Usuarios.AnyAsync(u => u.Email == usuario.Email);
+        // Se o e-mail já estiver em uso, exibir uma mensagem de erro
+        if (existe)
+        {
+            msg = $"O e-mail {usuario.Email} já está em uso.";
+            return;
+        }
+        // Validação do CPF
+        if (!ValidadorCpf.Validar(usuario.CPF))
+        {
+            msg = "CPF inválido. Por favor, insira um CPF válido.";
+            return;
+        }
+        // Remover caracteres não numéricos do CPF
+        usuario.CPF = new string(usuario.CPF.Where(char.IsDigit).ToArray());
+        // Verificar se o CPF já está em uso
+        var existeCPF = await Db.Usuarios.AnyAsync(u => u.CPF == usuario.CPF);
+        if(existeCPF){
+            msg = "Este CPF já está em uso";
+            return;
+        }
+        // Hash da senha
+        var hasher = new PasswordHasher<Usuario>();
+        // Hash da senha
+        usuario.SenhaHash = hasher.HashPassword(usuario, usuario.Senha);
+        //Adiciona o usuario ao banco de dados e salva as alterações
+        Db.Usuarios.Add(usuario);
+        await Db.SaveChangesAsync();
+        
+        msg = "Usuário cadastrado com sucesso";
+        usuario.CPF = string.Empty;
+        usuario.Email = string.Empty;
+        usuario.Nome = string.Empty;
+        usuario.Senha = string.Empty;
+        usuario.SenhaHash = string.Empty;
+    }
+}

@@ -1,0 +1,81 @@
+.form-principal{
+    position: absolute;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;        
+    width: 100%;
+    padding: 20px;
+    box-sizing: border-box;   
+}
+.opcoes{
+    display: flex;
+    flex-direction: column;
+    background-color: #e0f7fa;
+    border: 1px solid #0097a7;
+    border-radius: 12px;
+    padding: 22px 40px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+    text-align: center;
+    max-width: 360px;
+    width: 100%;
+    box-sizing: border-box;
+}
+.opcoes label{
+    display: flex;
+    flex-direction: row;
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: #006064;
+    margin: 5px 0px;
+    
+}
+
+::deep .input-config{
+    padding: 5px;
+    border: 0.5px solid #0097a7;
+    border-radius: 8px;
+    transition: all 0.2s ease;
+}
+::deep .input-config:hover{
+    box-shadow: 0 0 5px #0097a7;
+}
+::deep .input-config:focus{
+    outline: none;
+    border: 1px solid #006064;
+}
+
+.auth-actions{
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    margin-top: 20px;
+}
+.btn-login{
+    background-color: #00acc1;
+    color: #006064;
+    padding: 6px;
+    min-width: 50%;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: bold;
+}
+.btn-cadastro{
+    background-color: transparent;
+    color: #006064;
+    padding: 6px;
+    border: 1px solid #006064;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.1s ease-in-out;    
+}
+.btn-login:hover, .btn-cadastro:hover{
+    background-color: #0097a7;
+    color: white;
+    box-shadow: 2px 2px 2px black;
+}

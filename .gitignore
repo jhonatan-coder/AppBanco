@@ -1,0 +1,7 @@
+.vscode/
+bin/
+obj/
+
+appbanco.db
+appbanco.db-wal
+appbanco.db-shm

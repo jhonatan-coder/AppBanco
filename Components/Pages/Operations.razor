@@ -1,0 +1,196 @@
+@page "/operations"
+@using System.Diagnostics
+@using AppBanco.Models
+@using AppBanco.Data
+@using Microsoft.EntityFrameworkCore
+@using Microsoft.AspNetCore.Components.Authorization
+@using System.Security.Claims
+
+@rendermode InteractiveServer
+
+@inject AppDbContext Db
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject NavigationManager Navigation
+@inject ContaBancaria contaBancaria
+
+<PageTitle>Conta Bancaria</PageTitle>
+<div class="form-principal">
+    <div class="info-saldo">
+        <div class="sessao-saldo">
+            <h2>Saldo Bancário</h2>
+            <h3 class="saldo">@usuarioLogado.Saldo.ToString("C")</h3>
+        </div>
+    </div>
+
+    <div class="opcoes">
+        <label>Escolha a operação que deseja realizar</label>
+        <button type="button" @onclick="AbrirSessaoDeposito">Depositar</button>
+
+        <div class="sessao-deposito @(openDeposito ? "aberta" : "")">
+            <input type="number" class="inputs-config" @bind-value="saldo" event=""/>
+            <button @onclick="DepositarValor">Enviar</button>
+        </div>                           
+       
+        <button type="button" @onclick="AbrirSessaoSacar">Sacar</button>
+        
+        <div class="sessao-sacar @(openSacar ? "aberta" : "")">
+            <input type="number" class="inputs-config" @bind-value="saldo">
+            <button @onclick="SacarValor">Enviar</button>
+        </div>
+        
+        <button type="button" @onclick="AbrirSessaoTransferir">Transferir</button>
+        
+        <div class="sessao-transferir @(openTransferir ? "aberta" : "")">
+            <input type="number" class="inputs-config" @bind-value="saldo">
+            <input type="email" class="inputs-config" @bind-value="emailDestino" placeholder="Digite o e-mail do destinatário" />
+            <button @onclick="TransferirValor">Enviar</button>
+        </div>
+
+        @if (!string.IsNullOrEmpty(mensagemErro))
+        {
+            <span class="mensagem-erro">@mensagemErro</span>
+        }
+        @if (!string.IsNullOrEmpty(mensagemSucesso))
+        {
+            <span class="mensagem-sucesso">@mensagemSucesso</span>
+        }
+    </div>
+</div>
+
+
+@code{
+    private string? mensagemErro;
+    private string? mensagemSucesso;
+
+    private bool openDeposito {get; set;} = false;
+    private bool openSacar{get; set;} = false;
+    private bool openTransferir{get; set;} = false;
+    private decimal saldo;
+    private decimal saldoAtual;
+
+    private string emailDestino {get; set;} = string.Empty;
+    private string emailUsuario {get; set;} = string.Empty;
+    private Usuario? usuarioLogado;
+
+    private HistoricoTransacao historico = new();
+    private TipoTransacao tipoTransacao = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+
+        var idClaim = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+        if (!Guid.TryParse(idClaim, out var usuarioId))
+        {
+            mensagemErro = "Usuário não autenticado.";
+            return;
+        }
+
+        usuarioLogado = await Db.Usuarios.FirstOrDefaultAsync(u => u.ID == usuarioId);
+
+        if (usuarioLogado == null)
+        {
+            mensagemErro = "usuário não encontrado.";
+            return;
+        }
+    }
+
+    private void AbrirSessaoDeposito()
+    {
+        openDeposito = !openDeposito;
+        openSacar = false;
+        openTransferir = false;
+        mensagemSucesso = null;
+        mensagemErro = null;
+    }
+    private void AbrirSessaoSacar()
+    {
+        openSacar = !openSacar;
+        openDeposito = false;
+        openTransferir = false;
+        mensagemSucesso = null;
+        mensagemErro = null;
+    }
+
+    private void AbrirSessaoTransferir()
+    {
+        openTransferir = !openTransferir;
+        openSacar = false;
+        openDeposito = false;
+        mensagemSucesso = null;
+        mensagemErro = null;
+    }
+
+    private async Task DepositarValor()
+    {
+        try
+        {
+            if (usuarioLogado == null)
+            {
+                mensagemErro = "usuário não encontrado.";
+                return;
+            }    
+
+            contaBancaria.Depositar(usuarioLogado, saldo);
+            await Db.SaveChangesAsync();
+            mensagemSucesso = "Deposito enviado com sucesso.";
+            mensagemErro = null;
+            saldo = 0;
+        }
+        catch (Exception ex)
+        {
+            mensagemSucesso = null;
+            mensagemErro = ex.Message;
+        }
+    }
+    private async Task SacarValor()
+    {
+        try
+        {
+            if (usuarioLogado == null)
+            {
+                mensagemErro = "usuário não encontrado.";
+                return;
+            }
+            contaBancaria.Sacar(usuarioLogado, saldo);
+            await Db.SaveChangesAsync();
+            mensagemErro = null;
+            mensagemSucesso = $"Sucesso! Valor de {saldo.ToString("C") }retirado com sucesso.";
+            saldo = 0;
+
+        }
+        catch (Exception ex)
+        {
+            mensagemSucesso = null;
+            mensagemErro = ex.Message;
+        }
+    }
+    private async Task TransferirValor()
+    {
+        try
+        {
+            var usuarioDestino = await Db.Usuarios.FirstOrDefaultAsync(u => u.Email == emailDestino);
+            if (usuarioDestino == null)
+            {
+                mensagemErro = "Usuário destinatário não encontrado.";
+                mensagemSucesso = null;
+                return;
+            }
+            
+            contaBancaria.Transferir(usuarioLogado, usuarioDestino, saldo);
+            await Db.SaveChangesAsync();
+            mensagemErro = null;
+            mensagemSucesso = "Transferência feita com sucesso.";
+            saldo = 0;            
+        }
+        catch (Exception ex)
+        {
+            mensagemSucesso = null;
+            mensagemErro = ex.Message;
+        }
+    }  
+
+  
+}

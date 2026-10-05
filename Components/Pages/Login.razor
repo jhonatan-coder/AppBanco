@@ -1,0 +1,96 @@
+﻿@page "/"
+@using AppBanco.Data
+@using AppBanco.Models
+@using Microsoft.AspNetCore.Identity
+@using Microsoft.EntityFrameworkCore
+@using Microsoft.AspNetCore.Authentication
+@using Microsoft.AspNetCore.Authentication.Cookies
+@using System.Security.Claims
+@using System.Diagnostics
+@inject NavigationManager Navigation
+@inject AppDbContext Db
+
+
+<PageTitle>Conta Bancaria</PageTitle>
+<div class="form-principal">
+    <EditForm Model="@LoginModel" OnValidSubmit="@LoginUser" AutoComplete="off" FormName="LoginForm">
+        <div class="opcoes">
+            <DataAnnotationsValidator />
+
+            <ValidationSummary />
+
+            
+            <label>Login</label>
+            <InputText class="input-config" @bind-Value="@LoginModel.Email" type="email" placeholder="Digite seu e-mail"/>
+            
+            <label>Senha</label>
+            <InputText class="input-config" @bind-Value="@LoginModel.Senha" type="password" placeholder="Digite sua senha"/>
+            
+            <span>
+                <p>@msg</p>
+            </span>
+            
+            <div class="auth-actions">
+                <button type="submit" class="btn-login">Login</button>
+                <button type="button" class="btn-cadastro" @onclick="PageRegister">Cadastrar</button>
+            </div>
+        </div>
+    </EditForm>
+</div>
+
+
+@code{
+    private string msg = string.Empty;
+    [CascadingParameter]
+    private HttpContext? HttpContext {get; set;}
+    [SupplyParameterFromForm]
+    private LoginModel? LoginModel {get; set;}
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+        LoginModel ??= new();
+    }
+
+    private async Task LoginUser()
+    {
+        var hasher = new PasswordHasher<Usuario>();
+
+        var usuario = await Db.Usuarios.FirstOrDefaultAsync(u => u.Email == LoginModel.Email);
+
+        if (usuario == null)
+        {
+            msg = "Usuário ou senha inválidos!";
+            return;
+        }
+
+        var resultado = hasher.VerifyHashedPassword(usuario, usuario.SenhaHash, LoginModel.Senha);
+        if (resultado != PasswordVerificationResult.Success)
+        {
+            msg = "Usuário ou senha inválidos!";
+            return;
+        }
+
+        var claims = new List<Claim>
+        {
+            new Claim(ClaimTypes.NameIdentifier, usuario.ID.ToString()),
+            new Claim(ClaimTypes.Name, usuario.Nome),
+            new Claim(ClaimTypes.Email, usuario.Email)
+        };
+
+        var identidade = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+        var principal = new ClaimsPrincipal(identidade);
+        await HttpContext!.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, principal);
+
+        PageLogin();
+    }
+
+    public void PageLogin()
+    {
+        Navigation.NavigateTo("operations");
+    }  
+    public void PageRegister()
+    {
+        Navigation.NavigateTo("register");
+    } 
+}

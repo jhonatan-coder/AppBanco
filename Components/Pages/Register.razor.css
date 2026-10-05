@@ -1,0 +1,30 @@
+
+.form-container{
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    min-width: 100vw;
+    background: linear-gradient(135deg,#1e1e38 0%,#3a226b 50%,#512da8 100%);
+    
+    box-sizing: border-box;
+}
+.form-register{
+    align-items: center;
+    background-color: white;
+    margin: 20px;
+    padding: 15px;
+    border-radius: 12px;
+    box-shadow: 5px 3px 2px rgba(0,0,0,0.2);
+}
+.form-group{
+    display: flex;
+    flex-direction: column;
+    margin: 5px;
+}
+::deep .input-text{
+    border: 1px solid black;
+    border-radius: 8px;
+
+}
